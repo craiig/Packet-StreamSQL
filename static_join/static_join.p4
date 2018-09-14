@@ -8,13 +8,14 @@
     inner join (age, height, weight, name, zip_code)
     
     example: tuples = (int age, int height, int weight, varchar 10 name)
+             static_table = (int age, int zip_code)
 
     SELECT age, height, weight, name, zip_code
     FROM tuples
     INNER JOIN static_table ON tuples.age = static_table.age
     WHERE name = 'alice'
 
-    result = (int age, varchar 10 name, int count)
+    result = (int age, int height, int weight, varchar 10 name, int zip_code)
 
  * If an unknown operation is specified or the header is not valid, the packet
  * is dropped 
