@@ -1,0 +1,15 @@
+    The switch receives a packet, filters the packet on 'age' colmumn, applies a project operation,
+    and sends packet to destination host
+    
+    example: tuples = (int age, int height, int weight, varchar 10 name)
+
+    SELECT age, name, count(*)
+    FROM tuples
+    WHERE age <= 50
+    AND name = 'alice'
+
+    result = (int age, varchar 10 name, int count)
+
+    If an unknown operation is specified or the header is not valid, the packet
+    is dropped 
+
