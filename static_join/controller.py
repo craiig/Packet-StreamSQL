@@ -6,8 +6,6 @@ import sys
 import random
 from time import sleep
 
-# Import P4Runtime lib from parent utils dir
-# Probably there's a better way of doing this.
 sys.path.append(
     os.path.join(os.path.dirname(os.path.abspath(__file__)),
                  '../../utils/'))
@@ -18,7 +16,9 @@ import p4runtime_lib.helper
 
 def writeStaticTable(p4info_helper, switch):
 
-    hosts = [('10.0.1.1', "00:00:00:00:01:01", 1), (('10.0.1.2', "00:00:00:00:01:02", 2)), (('10.0.1.3', "00:00:00:00:01:03", 3))]
+    hosts = [('10.0.1.1', "00:00:00:00:01:01", 1), ('10.0.1.2', "00:00:00:00:01:02", 2), ('10.0.1.3', "00:00:00:00:01:03", 3)]
+
+
 
     table_entry = p4info_helper.buildTableEntry(
         table_name="MyIngress.ipv4_lpm",
@@ -27,6 +27,34 @@ def writeStaticTable(p4info_helper, switch):
         action_params={ }
         )
     switch.WriteTableEntry(table_entry)
+
+
+
+    table_entry = p4info_helper.buildTableEntry(
+        table_name="MyEgress.update_count",
+        default_action=False,
+        match_fields={
+            "hdr.ipv4.srcAddr": (hosts[0][0], 32)
+        },
+        action_name="MyEgress.change_count",
+        action_params={
+            "i": 111
+        })
+    switch.WriteTableEntry(table_entry)
+
+
+    table_entry = p4info_helper.buildTableEntry(
+        table_name="MyEgress.update_count",
+        default_action=False,
+        match_fields={
+            "hdr.ipv4.srcAddr": (hosts[1][0], 32)
+        },
+        action_name="MyEgress.change_count",
+        action_params={
+            "i": 222
+        })
+    switch.WriteTableEntry(table_entry)
+
 
     for h in hosts:
         table_entry = p4info_helper.buildTableEntry(
