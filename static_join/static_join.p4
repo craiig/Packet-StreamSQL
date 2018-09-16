@@ -19,6 +19,15 @@
 
  * If an unknown operation is specified or the header is not valid, the packet
  * is dropped 
+
+    Because the static table is actually a set, the 'join' query is actually
+    just a filter with many predicates i.e.
+
+    SELECT age, height, weight, name, zip_code
+    FROM tuples
+    WHERE name = 'alice'
+    AND age IN (SELECT age from static_table)
+
  */
 
 #include <core.p4>
@@ -32,11 +41,18 @@ const bit<32> MY_AGE = 0x00000032; // 50
 const bit<80> MY_NAME = 0x616c6963650000000000; // alice
 
 
+const bit<32> IPV4_1 = 0x0a000101; // h1 ip address 
+const bit<32> IPV4_2 = 0x0a000102; // h2 ip address 
+
 typedef bit<9>  egressSpec_t;
 typedef bit<32> ip4Addr_t;
 typedef bit<48> macAddr_t;
 
 typedef bit<32> zip_code_t;
+typedef bit<32> ipId_t;
+
+
+register<bit<32>>(1) count;
 
 /*
  * Standard ethernet header 
@@ -94,6 +110,7 @@ header result_t {
     bit<32> weight;
     bit<80> name;
     zip_code_t zip_code;
+    bit<32> count;
 }
 
 struct headers {
@@ -195,8 +212,8 @@ control MyIngress(inout headers hdr,
 
     apply {
         if(hdr.tupleVal.isValid() && hdr.ipv4.isValid()) {
-            // if(hdr.tupleVal.name == MY_NAME) {
-            if(hdr.tupleVal.age <= MY_AGE) {
+            if(hdr.tupleVal.name == MY_NAME) {
+            // if(hdr.tupleVal.age <= MY_AGE) {
                 ipv4_lpm.apply();
             } else {
                 drop();
@@ -229,17 +246,23 @@ control MyEgress(inout headers hdr,
         hdr.result.name = hdr.tupleVal.name;
         hdr.result.height = hdr.tupleVal.height;
         hdr.result.weight = hdr.tupleVal.weight;
+
+        count.read(hdr.result.count, 0);
+
         hdr.result.zip_code = z;
         hdr.tupleVal.setInvalid();
-        hdr.ipv4.totalLen = hdr.ipv4.totalLen + 4;
-        hdr.udp.length_ = hdr.udp.length_ + 4;
+        hdr.ipv4.totalLen = hdr.ipv4.totalLen + 8;
+        hdr.udp.length_ = hdr.udp.length_ + 8;
         hdr.udp.checksum = 0;   // udp checksum is optional. Set to 0
     }
 
+    action change_count(ipId_t i) {
+        count.write(0, i);
+    }
 
     table join_exact {
         key = {
-            hdr.tupleVal.name: exact;
+            hdr.tupleVal.age: exact;
         }
         actions = {
             update_headers;
@@ -249,8 +272,19 @@ control MyEgress(inout headers hdr,
         default_action = drop();
     }
 
+    table update_count {
+        key = {
+            hdr.ipv4.srcAddr : lpm;
+        }
+        actions = {
+            change_count;
+        }
+        size = 1024;
+    }
+
     apply { 
         if(hdr.tupleVal.isValid() && hdr.ipv4.isValid()) {
+            update_count.apply();
             join_exact.apply();
         }
     }
