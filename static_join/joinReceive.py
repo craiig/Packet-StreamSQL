@@ -24,7 +24,7 @@ def main():
         tupl, clientAddress = s.recvfrom(200)
         # tupl = struct.unpack('>III10s',tupl)
         # tupl = struct.unpack('>I10s',tupl)
-        tupl = struct.unpack('>III10sI',tupl)
+        tupl = struct.unpack('>III10sII',tupl)
         print str(tupl), str(clientAddress)
 
 if __name__ == '__main__':
