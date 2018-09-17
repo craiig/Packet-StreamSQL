@@ -1,0 +1,14 @@
+Switch receives two packet streams, h1 sending (adId, impression_time) on
+srcPort 11111 and h2 sending (adId, click_time) on srcPort 22222. 
+The two streams are joined on adId and the resulting joined packet is
+outputed to h3.
+
+	SELECT adId, impression_time, click_time
+	FROM impressions i
+	INNER JOIN clicks c ON i.adId = c.adId
+
+A click for a particular ad is assumed to occur exactly 1 unit after that ad
+was impressed upon the user, but the click packets may arrive out of order.
+To mitigate this, each stream can buffer up to 100 packets before the buffer
+starts to get overwritten with new packet data.  
+
