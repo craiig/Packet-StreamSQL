@@ -243,10 +243,7 @@ control MyEgress(inout headers hdr,
         hdr.result.setValid();
         hdr.result.adId = hdr.impression.adId;
         hdr.result.impr_time = hdr.impression.impr_time;
-        bit<32> cTime;
-        reg_click_time.read(cTime, hdr.impression.adId);
-        hdr.result.click_time = cTime;
-
+        reg_click_time.read(hdr.result.click_time, hdr.impression.adId);
         hdr.impression.setInvalid();
         hdr.ipv4.totalLen = hdr.ipv4.totalLen + 4;
         hdr.udp.length_ = hdr.udp.length_ + 4;
@@ -257,10 +254,7 @@ control MyEgress(inout headers hdr,
         hdr.result.setValid();
         hdr.result.adId = hdr.click.adId;
         hdr.result.click_time = hdr.click.click_time;
-        bit<32> iTime;
-        reg_impr_time.read(iTime, hdr.click.adId);
-        hdr.result.impr_time = iTime;
-
+        reg_impr_time.read(hdr.result.impr_time, hdr.click.adId);
         hdr.click.setInvalid();
         hdr.ipv4.totalLen = hdr.ipv4.totalLen + 4;
         hdr.udp.length_ = hdr.udp.length_ + 4;
