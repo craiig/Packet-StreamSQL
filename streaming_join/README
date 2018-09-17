@@ -6,6 +6,12 @@ outputed to h3.
 	SELECT adId, impression_time, click_time
 	FROM impressions i
 	INNER JOIN clicks c ON i.adId = c.adId
+	
+	  Impr		    Click         
+	(0,1000)           (2,1005)      (0,1000,1001)
+	(1,1002)  JOIN ON  (0,1001)  =>  (1,1002,1003)
+	(2,1004)    adId   (1,1003)      (2,1004,1005)
+
 
 A click for a particular ad is assumed to occur exactly 1 unit after that ad
 was impressed upon the user, but the click packets may arrive out of order.
